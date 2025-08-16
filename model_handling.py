@@ -66,7 +66,7 @@ def tokenize_dataset():
   dataset = Dataset.from_pandas(combined_df[['text']]) # Convert the pandas DataFrame to a Hugging Face Dataset
   tokenized_dataset = dataset.map(tokenize_function, batched=True)
   print("Dataset successfully prepared and tokenized.")
-  return tokenized_dataset
+  return tokenized_dataset, tfidf_vectorizer, tfidf_matrix
 
 def load_checkpoint():
   model_dir_drive = "./mental_health_chatbot_model_iterative"
