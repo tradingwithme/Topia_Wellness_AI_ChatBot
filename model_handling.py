@@ -130,3 +130,4 @@ def train_dataset_iterative(trainer,training_args,total_epochs=1):
   trained_epochs = 0
   trainer, trained_epochs, epochs_per_iteration = train_dataset(trainer,training_args,trained_epochs,epochs_per_iteration)
   while trained_epochs < total_epochs: trainer, trained_epochs, epochs_per_iteration = train_dataset(trainer,training_args,trained_epochs,epochs_per_iteration)
+  print(f"Iterative fine-tuning complete. Total epochs trained: {trained_epochs}")
