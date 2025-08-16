@@ -1,5 +1,5 @@
-#generative_response.py
 import numpy as np
+from transformers import pipeline
 from simpleneighbors import SimpleNeighbors
 from model_handling import text_normalization
 from sklearn.metrics.pairwise import cosine_similarity
@@ -107,49 +107,87 @@ def retrieve_neighbors(user_input, sn_index, question_encoder, context_tuples, t
     nearest_indices = sn_index.nearest(user_emb, n=top_k)
     return [context_tuples[i] for i in nearest_indices]
 
+def summarize_responses(responses, summarizer, chunk_size=1024):
+    """
+    Summarize all valid retrieved responses using a HuggingFace model.
+    Ensures all of combined_text is considered by chunking if needed.
+    Args:
+        responses (List[str]): List of response strings.
+        summarizer (callable): HuggingFace pipeline for summarization.
+        chunk_size (int): Max input size for the model (tokens/characters).
+    Returns:
+        str: Summarized response.
+    """
+    combined_text = " ".join(responses)
+    # Split combined_text into chunks if it exceeds model input size
+    chunks = [combined_text[i:i+chunk_size] for i in range(0, len(combined_text), chunk_size)]
+    summaries = []
+    for chunk in chunks:
+        summary = summarizer(chunk, max_length=128, min_length=30, do_sample=False)
+        if isinstance(summary, list) and "summary_text" in summary[0]:
+            summaries.append(summary[0]["summary_text"])
+        else:
+            summaries.append(str(summary))
+    # If multiple summaries, summarize them again to condense
+    if len(summaries) > 1:
+        final_summary = summarizer(" ".join(summaries), max_length=128, min_length=30, do_sample=False)
+        if isinstance(final_summary, list) and "summary_text" in final_summary[0]:
+            return final_summary[0]["summary_text"]
+        else:
+            return str(final_summary)
+    return summaries[0]
+
 def generate_hybrid_response(
     user_input, df, tfidf_vectorizer, tfidf_matrix, model, tokenizer,
     response_encoder=None, question_encoder=None, sn_index=None, context_tuples=None,
+    summarizer=None,
     retrieval_threshold=0.7, rule_threshold=0.5, top_k_neighbors=3
 ):
     """
-    Enhanced hybrid response: includes embedding-based retrieval using SimpleNeighbors.
+    Hybrid response: retrieves responses using four techniques and summarizes them.
+    Ensures all of combined_text is considered.
     """
+    retrieved_responses = []
+
     # 1. Embedding-based retrieval using SimpleNeighbors
     if sn_index is not None and question_encoder is not None and context_tuples is not None:
         neighbors = retrieve_neighbors(user_input, sn_index, question_encoder, context_tuples, top_k=top_k_neighbors)
-        if neighbors:
-            # Return the answer of the top neighbor
-            return neighbors[0][1]
-    # 1. Retrieval-based response
+        retrieved_responses.extend([answer for _, answer in neighbors if answer])
+
+    # 2. Retrieval-based response (TF-IDF)
     user_input_lemmatized = text_normalization(user_input)
     user_tfidf = tfidf_vectorizer.transform([user_input_lemmatized])
     cosine_sim = cosine_similarity(user_tfidf, tfidf_matrix)
     most_similar_index = cosine_sim.argmax()
     retrieval_score = cosine_sim[0, most_similar_index]
-    retrieval_response = df['Answers'].iloc[most_similar_index] if retrieval_score > retrieval_threshold else None
+    if retrieval_score > retrieval_threshold:
+        retrieved_responses.append(df['Answers'].iloc[most_similar_index])
 
-    # 2. Rule-based response
+    # 3. Rule-based response
     rule_response_text = rule_based_response(user_input, df)
-    rule_confidence = get_rule_based_confidence(user_input, df) # Use the confidence function
-    rule_response = rule_response_text if rule_confidence > rule_threshold else None # Use the threshold
+    rule_confidence = get_rule_based_confidence(user_input, df)
+    if rule_confidence > rule_threshold and rule_response_text not in retrieved_responses:
+        retrieved_responses.append(rule_response_text)
 
-    # 3. Select the best response based on confidence/thresholds
-    if retrieval_response is not None and (rule_response is None or retrieval_score >= rule_confidence): return retrieval_response
-    elif rule_response is not None: return rule_response
+    # 4. Generative response (if retrieval and rule-based fail)
+    #if not retrieved_responses:
+    input_text = str(user_input)
+    input_text = f"<HUMAN>: {input_text}\n<ASSISTANT>:"
+    input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
+    output_ids = model.generate(
+        input_ids,
+        max_length=9999,
+        num_return_sequences=1,
+        pad_token_id=tokenizer.eos_token_id,
+        no_repeat_ngram_size=3,
+        early_stopping=True
+    )
+    generated_response = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+    generated_response = generated_response.replace(input_text, "").strip()
+    retrieved_responses.append(generated_response)
+
+    # Summarize all valid retrieved responses using the provided summarizer
+    if summarizer is not None and len(retrieved_responses) > 1:
+        return summarize_responses(retrieved_responses, summarizer)
     else:
-        # 4. Generative response (if retrieval and rule-based fail)
-        input_text = str(user_input) # Ensure the user input is a string before encoding
-        input_text = f"<HUMAN>: {input_text}\n<ASSISTANT>:" # Format the input for the generative model as a conversation turn
-        input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device) # Encode the input and ensure it's on the correct device
-        output_ids = model.generate(  # Generate a response using the fine-tuned model
-            input_ids,
-            max_length=9999,  # Adjust max length as needed
-            num_return_sequences=1,
-            pad_token_id=tokenizer.eos_token_id,
-            no_repeat_ngram_size=3,  # Prevent repeating n-grams
-            early_stopping=True  # Stop when the generation is complete
-        )
-        generated_response = tokenizer.decode(output_ids[0], skip_special_tokens=True)  # Decode the generated response and remove the input text
-        generated_response = generated_response.replace(input_text, "").strip()  # Remove the input prompt from the generated text
-        return generated_response
+        return retrieved_responses[0] if retrieved_responses else "I'm not sure how to respond to that. Can you please rephrase your question."
