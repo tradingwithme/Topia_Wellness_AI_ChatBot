@@ -1,4 +1,5 @@
 import pandas as pd
+from os import path, getcwd
 
 def get_mental_health_data():
     """
@@ -8,8 +9,13 @@ def get_mental_health_data():
         pd.DataFrame: DataFrame containing the mental health data.
     """
     # Load the dataset
-    mental_df = pd.read_csv('mentalhealth.csv')
+    mental_df = pd.read_csv('mentalhealth.csv',index_col=0)
     df_parquet = pd.read_parquet("hf://datasets/heliosbrahma/mental_health_chatbot_dataset/data/train-00000-of-00001-01391a60ef5c00d9.parquet")
     df2 = pd.DataFrame(df_parquet["text"].apply(lambda x: {"Questions":x.splitlines()[0].split(">",1)[-1].split(":",1)[-1],
 "Answers":x.splitlines()[1].split(">",1)[-1].split(":",1)[-1]}).tolist())
-    return pd.concat([df2, mental_df], ignore_index=True)
+    combined_df = pd.concat([df2, mental_df], ignore_index=True)
+    combined_df.loc[:,"Type"] = "O"
+    if path.exists(path.join(getcwd(),"mental_health_results.csv")):
+        mental_health_results = pd.read_csv("mental_health_results.csv",index_col=0)
+        combined_df = pd.concat([combined_df, mental_health_results], ignore_index=True)
+    return combined_df
