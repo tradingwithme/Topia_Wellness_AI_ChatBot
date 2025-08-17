@@ -12,33 +12,33 @@ def fine_tune_model(tokenized_dataset, model, tokenizer):
     trainer = setup_trainer(model, tokenizer, tokenized_dataset)
     train_dataset_iterative(trainer, trainer.args, total_epochs=1)
 
-def save_approved_response(user_input, response, filepath="mental_health_results.csv"):
+def save_approved_response(user_input, response, filepath="approved_responses.csv"):
     # Save approved Q&A to a CSV file
     approved_df = pd.DataFrame([{"Questions": user_input, "Answers": response}])
-    try: approved_df.to_csv(filepath, 
-mode='a', 
-header=not pd.io.common.file_exists(filepath), 
-index=False)
-    except Exception as e: print(f"Error saving approved response: {e}")
+    try:
+        approved_df.to_csv(filepath, mode='a', header=not pd.io.common.file_exists(filepath), index=False)
+    except Exception as e:
+        print(f"Error saving approved response: {e}")
 
 def save_correction(user_input, corrected_response, filepath="corrections.csv"):
     correction_df = pd.DataFrame([{"Questions": user_input, "Answers": corrected_response}])
-    try: correction_df.to_csv(filepath, mode='a', header=not pd.io.common.file_exists(filepath), index=False)
-    except Exception as e: print(f"Error saving correction: {e}")
+    try:
+        correction_df.to_csv(filepath, mode='a', header=not pd.io.common.file_exists(filepath), index=False)
+    except Exception as e:
+        print(f"Error saving correction: {e}")
 
 def fine_tune_with_approved():
     # Load approved responses dataset
     try:
         approved_df = pd.read_csv("approved_responses.csv")
-        # You may need to tokenize and preprocess this dataset as required by your model
-        # For example:
+        # Tokenize and preprocess this dataset as required by your model
         tokenized_approved, _, _ = tokenize_dataset(approved_df)
         model, tokenizer = load_checkpoint()
         trainer = setup_trainer(model, tokenizer, tokenized_approved)
         train_dataset_iterative(trainer, trainer.args, total_epochs=1)
-        # For demonstration, just print a message:
         print("Fine-tuning with approved responses...")
-    except Exception as e: print(f"Error loading approved responses for fine-tuning: {e}")
+    except Exception as e:
+        print(f"Error loading approved responses for fine-tuning: {e}")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -47,7 +47,7 @@ def main():
     parser.add_argument('--response', type=str, default=None)
     parser.add_argument('user_message', nargs='?', default=None)
     args = parser.parse_args()
-    
+
     user_input = sys.argv[1] if len(sys.argv) > 1 else input("Enter your question: ")
 
     # Load data and models
@@ -57,13 +57,13 @@ def main():
 
     # Generate response
     response = generate_hybrid_response(
-user_input,
-df,
-tfidf_vectorizer,
-tfidf_matrix,
-model,
-tokenizer
-)
+        user_input,
+        df,
+        tfidf_vectorizer,
+        tfidf_matrix,
+        model,
+        tokenizer
+    )
     print(response)
     feedback = input("Do you approve this response? (y/n, or press Enter to skip): ").strip().lower()
     if feedback == "y" or (args.feedback and args.feedback == 'y'):
@@ -88,4 +88,5 @@ tokenizer
             p.start()
             print("Model fine-tuning started in the background.")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main()
