@@ -1,3 +1,4 @@
+import boto3
 import numpy as np
 from transformers import pipeline
 from simpleneighbors import SimpleNeighbors
@@ -107,45 +108,82 @@ def retrieve_neighbors(user_input, sn_index, question_encoder, context_tuples, t
     nearest_indices = sn_index.nearest(user_emb, n=top_k)
     return [context_tuples[i] for i in nearest_indices]
 
-def summarize_responses(responses, summarizer, chunk_size=1024):
+def sagemaker_summarize(text, endpoint_name):
     """
-    Summarize all valid retrieved responses using a HuggingFace model.
+    Use AWS SageMaker endpoint to summarize text.
+    Args:
+        text (str): Text to summarize.
+        endpoint_name (str): SageMaker endpoint name.
+    Returns:
+        str: Summarized text from SageMaker.
+    """
+    runtime = boto3.client('sagemaker-runtime')
+    response = runtime.invoke_endpoint(
+        EndpointName=endpoint_name,
+        ContentType='application/json',
+        Body='{"inputs": "%s"}' % text.replace('"', '\\"')
+    )
+    result = response['Body'].read().decode()
+    # You may need to parse result depending on your model's output format
+    # Example for HuggingFace text2text models:
+    import json
+    summary = json.loads(result)
+    if isinstance(summary, list) and "summary_text" in summary[0]:
+        return summary[0]["summary_text"]
+    elif isinstance(summary, dict) and "summary_text" in summary:
+        return summary["summary_text"]
+    return str(summary)
+
+def summarize_responses(responses, summarizer=None, sagemaker_endpoint=None, chunk_size=1024):
+    """
+    Summarize all valid retrieved responses using HuggingFace or SageMaker.
     Ensures all of combined_text is considered by chunking if needed.
     Args:
         responses (List[str]): List of response strings.
         summarizer (callable): HuggingFace pipeline for summarization.
+        sagemaker_endpoint (str): SageMaker endpoint name.
         chunk_size (int): Max input size for the model (tokens/characters).
     Returns:
         str: Summarized response.
     """
     combined_text = " ".join(responses)
-    # Split combined_text into chunks if it exceeds model input size
     chunks = [combined_text[i:i+chunk_size] for i in range(0, len(combined_text), chunk_size)]
     summaries = []
     for chunk in chunks:
-        summary = summarizer(chunk, max_length=128, min_length=30, do_sample=False)
-        if isinstance(summary, list) and "summary_text" in summary[0]:
-            summaries.append(summary[0]["summary_text"])
+        if sagemaker_endpoint:
+            summary = sagemaker_summarize(chunk, sagemaker_endpoint)
+        elif summarizer:
+            summary = summarizer(chunk, max_length=128, min_length=30, do_sample=False)
+            if isinstance(summary, list) and "summary_text" in summary[0]:
+                summary = summary[0]["summary_text"]
+            else:
+                summary = str(summary)
         else:
-            summaries.append(str(summary))
-    # If multiple summaries, summarize them again to condense
+            summary = chunk
+        summaries.append(summary)
     if len(summaries) > 1:
-        final_summary = summarizer(" ".join(summaries), max_length=128, min_length=30, do_sample=False)
-        if isinstance(final_summary, list) and "summary_text" in final_summary[0]:
-            return final_summary[0]["summary_text"]
+        final_text = " ".join(summaries)
+        if sagemaker_endpoint:
+            return sagemaker_summarize(final_text, sagemaker_endpoint)
+        elif summarizer:
+            final_summary = summarizer(final_text, max_length=128, min_length=30, do_sample=False)
+            if isinstance(final_summary, list) and "summary_text" in final_summary[0]:
+                return final_summary[0]["summary_text"]
+            else:
+                return str(final_summary)
         else:
-            return str(final_summary)
+            return final_text
     return summaries[0]
 
 def generate_hybrid_response(
     user_input, df, tfidf_vectorizer, tfidf_matrix, model, tokenizer,
     response_encoder=None, question_encoder=None, sn_index=None, context_tuples=None,
-    summarizer=None,
+    summarizer=None, sagemaker_endpoint=None,
     retrieval_threshold=0.7, rule_threshold=0.5, top_k_neighbors=3
 ):
     """
     Hybrid response: retrieves responses using four techniques and summarizes them.
-    Ensures all of combined_text is considered.
+    Supports SageMaker endpoint for summarization.
     """
     retrieved_responses = []
 
@@ -169,8 +207,7 @@ def generate_hybrid_response(
     if rule_confidence > rule_threshold and rule_response_text not in retrieved_responses:
         retrieved_responses.append(rule_response_text)
 
-    # 4. Generative response (if retrieval and rule-based fail)
-    #if not retrieved_responses:
+    # 4. Generative response (always included)
     input_text = str(user_input)
     input_text = f"<HUMAN>: {input_text}\n<ASSISTANT>:"
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
@@ -186,8 +223,8 @@ def generate_hybrid_response(
     generated_response = generated_response.replace(input_text, "").strip()
     retrieved_responses.append(generated_response)
 
-    # Summarize all valid retrieved responses using the provided summarizer
-    if summarizer is not None and len(retrieved_responses) > 1:
-        return summarize_responses(retrieved_responses, summarizer)
+    # Summarize all valid retrieved responses using the provided summarizer or SageMaker
+    if (summarizer or sagemaker_endpoint) and len(retrieved_responses) > 1:
+        return summarize_responses(retrieved_responses, summarizer, sagemaker_endpoint)
     else:
         return retrieved_responses[0] if retrieved_responses else "I'm not sure how to respond to that. Can you please rephrase your question."
