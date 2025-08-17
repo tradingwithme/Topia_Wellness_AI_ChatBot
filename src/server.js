@@ -11,7 +11,7 @@ app.post('/chatbot', (req, res) => {
   const userMessage = req.body.message;
 
   // Spawn Python process and pass userMessage as argument
-  const pythonProcess = spawn('python', ['python-chatbot/chatbot_entry.py', userMessage]);
+  const pythonProcess = spawn('python', ['../chatbot_entry.py', userMessage]);
 
   let botReply = '';
   pythonProcess.stdout.on('data', (data) => {
