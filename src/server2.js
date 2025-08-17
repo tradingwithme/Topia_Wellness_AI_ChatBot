@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
 
 const app = express();
-const PORT = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -14,7 +14,7 @@ app.post('/chatbot', (req, res) => {
   const userMessage = req.body.message;
   // Call Python script to get chatbot response
   const pythonProcess = spawn('python', [
-    '../chatbot_entry.py',
+    '../untitled:Untitled-1',
     userMessage
   ]);
 
@@ -30,6 +30,11 @@ app.post('/chatbot', (req, res) => {
   pythonProcess.on('close', (code) => {
     res.json({ reply: reply.trim() });
   });
+
+  pythonProcess.on('error', (err) => {
+    console.error('Failed to start Python process:', err);
+    res.status(500).json({ reply: 'Error: Could not start the chatbot process.' });
+  });
 });
 
 // Feedback endpoint
@@ -37,7 +42,7 @@ app.post('/feedback', (req, res) => {
   const { feedback, user_input, response } = req.body;
   // Call Python script to handle feedback and fine-tuning
   const pythonProcess = spawn('python', [
-    '../chatbot_entry.py',
+    '../untitled:Untitled-1',
     '--feedback', feedback,
     '--user_input', user_input,
     '--response', response
@@ -54,8 +59,13 @@ app.post('/feedback', (req, res) => {
   pythonProcess.on('close', (code) => {
     res.json({ status: 'ok' });
   });
+
+  pythonProcess.on('error', (err) => {
+    console.error('Failed to start Python process:', err);
+    res.status(500).json({ status: 'error' });
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Chatbot backend server listening at http://localhost:${port}`);
 });
