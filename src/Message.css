@@ -19,4 +19,11 @@
   color: white;
 }
 
-.bot-
+.bot-message {
+  justify-content: flex-start;
+}
+
+.bot-message .message-bubble {
+  background-color: #f1f0f0;
+  color: #333;
+}
