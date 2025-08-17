@@ -1,5 +1,6 @@
 import sys
 import time
+import argparse
 import pandas as pd
 import multiprocessing
 from csv_handling import get_mental_health_data
@@ -40,6 +41,13 @@ def fine_tune_with_approved():
     except Exception as e: print(f"Error loading approved responses for fine-tuning: {e}")
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--feedback', type=str, default=None)
+    parser.add_argument('--user_input', type=str, default=None)
+    parser.add_argument('--response', type=str, default=None)
+    parser.add_argument('user_message', nargs='?', default=None)
+    args = parser.parse_args()
+    
     user_input = sys.argv[1] if len(sys.argv) > 1 else input("Enter your question: ")
 
     # Load data and models
@@ -49,16 +57,16 @@ def main():
 
     # Generate response
     response = generate_hybrid_response(
-        user_input,
-        df,
-        tfidf_vectorizer,
-        tfidf_matrix,
-        model,
-        tokenizer
-    )
+user_input,
+df,
+tfidf_vectorizer,
+tfidf_matrix,
+model,
+tokenizer
+)
     print(response)
     feedback = input("Do you approve this response? (y/n, or press Enter to skip): ").strip().lower()
-    if feedback == "y":
+    if feedback == "y" or (args.feedback and args.feedback == 'y'):
         save_approved_response(user_input, response, filepath="approved_responses.csv")
         print("Approved response saved.")
         # Periodically fine-tune with approved responses (example: every 5 approvals)
@@ -70,7 +78,7 @@ def main():
                 print("Periodic fine-tuning with approved responses started in the background.")
         except Exception as e:
             print(f"Error checking approved responses for periodic fine-tuning: {e}")
-    elif feedback == "n":
+    elif feedback == "n" or (args.feedback and args.feedback == 'n'):
         corrected = input("Please provide a better answer: ").strip()
         if corrected:
             save_correction(user_input, corrected)
