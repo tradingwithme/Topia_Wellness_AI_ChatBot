@@ -1,2 +1,2 @@
-# Topia-s-Golabl-Wellness-AI-ChatBot
+# Topia_Wellness_AI_ChatBot
 Mental Health Wellness AI ChatBot for Topia
