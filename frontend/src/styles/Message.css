@@ -1,0 +1,109 @@
+/* Message.css */
+
+/* General message container */
+.message {
+  display: flex;
+  margin: 12px 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  animation: fadeSlideIn 0.4s ease;
+}
+
+/* Different alignment for user vs. bot */
+.user-message {
+  justify-content: flex-end;
+}
+
+.bot-message {
+  justify-content: flex-start;
+}
+
+/* Chat bubble container */
+.message-bubble {
+  max-width: 70%;
+  padding: 12px 18px;
+  border-radius: 20px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  animation: bubblePop 0.3s ease;
+}
+
+/* User bubble style */
+.user-message .message-bubble {
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+
+/* Bot bubble style */
+.bot-message .message-bubble {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-bottom-left-radius: 6px;
+}
+
+/* Sender label */
+.message-meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+.user-message .sender-label {
+  color: #d1d9ff;
+  text-align: right;
+  display: block;
+}
+
+.bot-message .sender-label {
+  color: #888;
+  text-align: left;
+  display: block;
+}
+
+/* Message text */
+.message-text {
+  font-size: 1rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Timestamp */
+.message-time {
+  font-size: 0.7rem;
+  margin-top: 6px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+.bot-message .message-time {
+  text-align: left;
+  color: #666;
+}
+
+.user-message .message-time {
+  text-align: right;
+  color: #e0e0ff;
+}
+
+/* Animations */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bubblePop {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}

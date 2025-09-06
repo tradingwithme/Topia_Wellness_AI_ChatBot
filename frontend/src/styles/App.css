@@ -1,0 +1,35 @@
+/* App.css */
+
+.app-container {
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #eef2f3, #d9e4f5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Splash screen */
+.splash-screen {
+  text-align: center;
+  animation: fadeIn 1s ease;
+}
+
+.splash-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2575fc;
+  margin-bottom: 0.5rem;
+}
+
+.splash-subtitle {
+  font-size: 1.2rem;
+  color: #555;
+  font-weight: 300;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

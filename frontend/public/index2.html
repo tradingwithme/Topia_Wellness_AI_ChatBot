@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Topia Global Wellness Chatbot</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1f2229, #2e323c);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Chatbot Container */
+    #chatbot-container {
+      width: 420px;
+      max-width: 95vw;
+      height: 80vh;
+      background: #2c2f38;
+      border-radius: 20px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 0.6s ease-out both;
+    }
+
+    /* Header */
+    h1 {
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      padding: 18px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 20px;
+      color: #fff;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Chat Area */
+    .chatbox {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+      background: radial-gradient(circle at top, #2c2f38, #1f2229);
+    }
+
+    /* Message Bubbles */
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 20px;
+      max-width: 75%;
+      word-wrap: break-word;
+      font-size: 15px;
+      line-height: 1.4;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+      animation: fadeInUp 0.35s ease both;
+    }
+
+    .reply {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      color: #fff;
+      border-radius: 18px 18px 0 18px;
+    }
+
+    .bot-msg {
+      align-self: flex-start;
+      background: #f4f4f4;
+      color: #333;
+      border-radius: 18px 18px 18px 0;
+    }
+
+    /* Input Bar */
+    .input-container {
+      display: flex;
+      padding: 14px;
+      background: #1f2229;
+      border-top: 1px solid #333;
+      gap: 10px;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 20px;
+      outline: none;
+      background: #2e323c;
+      color: #fff;
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    #user-input:focus {
+      background: #3a3f4d;
+    }
+
+    #user-input::placeholder {
+      color: #aaa;
+    }
+
+    #send-button {
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 18px;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+
+    #send-button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #0056b3, #0096d1);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="chatbot-container">
+    <h1>Topia Global Wellness Chatbot</h1>
+    <div id="chatbot" class="chatbox">
+      <!-- Chat messages will appear here -->
+    </div>
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Type your message here..." />
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('send-button').addEventListener('click', () => {
+      const userInput = document.getElementById('user-input').value;
+      if (userInput) {
+        fetch('/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_input: userInput }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            const chatbotDiv = document.getElementById('chatbot');
+            chatbotDiv.innerHTML += `<div class="bubble reply"><p><strong>You:</strong> ${userInput}</p></div>`;
+            chatbotDiv.innerHTML += `<div class="bubble bot-msg"><p><strong>Bot:</strong> ${data.response}</p></div>`;
+            document.getElementById('user-input').value = '';
+            chatbotDiv.scrollTop = chatbotDiv.scrollHeight;
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    });
+
+    document.getElementById('user-input').addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        document.getElementById('send-button').click();
+      }
+    });
+  </script>
+</body>
+</html>
