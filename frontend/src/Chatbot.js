@@ -7,7 +7,6 @@ function Chatbot() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Initial welcome message (no feedback here)
   useEffect(() => {
     setMessages([
       { text: "Welcome to Topia's AI Wellness Chatbot. How may I assist you today?", sender: "bot", timestamp: new Date(), showFeedback: false }
@@ -17,7 +16,7 @@ function Chatbot() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    // Add user message
+    
     const newMessages = [...messages, { text: input, sender: "user", timestamp: new Date() }];
     setMessages(newMessages);
     setInput("");
@@ -35,7 +34,7 @@ function Chatbot() {
 
       setMessages((prev) => [
         ...prev,
-        { text: botReply, sender: "bot", timestamp: new Date(), showFeedback: true } // feedback enabled
+        { text: botReply, sender: "bot", timestamp: new Date(), showFeedback: true } 
       ]);
     } catch (err) {
       console.error("Error fetching bot reply:", err);
@@ -50,14 +49,12 @@ function Chatbot() {
 
   const handleApprove = (message) => {
     console.log("Approved:", message);
-    // here you’d POST to backend /feedback
   };
 
   const handleCorrection = (message) => {
     const correction = prompt("Enter a better response:");
     if (correction) {
       console.log("Correction:", correction);
-      // here you’d POST to backend /feedback
     }
   };
 

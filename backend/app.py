@@ -13,10 +13,6 @@ from model_handling import (
     train_dataset_iterative,
 )
 
-# -------------------------
-# Utility functions
-# -------------------------
-
 def fine_tune_model(tokenized_dataset, model, tokenizer):
     """Fine-tune the model on a tokenized dataset."""
     trainer = setup_trainer(model, tokenizer, tokenized_dataset)
@@ -60,14 +56,9 @@ def fine_tune_with_approved():
     except Exception as e:
         print(f"Error loading approved responses for fine-tuning: {e}")
 
-# -------------------------
-# Flask App
-# -------------------------
-
 app = Flask(__name__)
 CORS(app)
 
-# Preload resources once at startup
 print("Loading data & models...")
 df = get_mental_health_data()
 nltk_download()
@@ -84,13 +75,13 @@ def chat():
         return jsonify({"error": "No message provided"}), 400
 
     response = generate_hybrid_response(
-        user_input,
-        df,
-        tfidf_vectorizer,
-        tfidf_matrix,
-        model,
-        tokenizer
-    )
+user_input,
+df,
+tfidf_vectorizer,
+tfidf_matrix,
+model,
+tokenizer
+)
 
     return jsonify({"response": response})
 
@@ -114,7 +105,6 @@ def feedback():
 
     if feedback_val == "y":
         save_approved_response(user_input, response)
-        # Periodic fine-tune: every 5 approvals
         try:
             approved_df = pd.read_csv("approved_responses.csv")
             if len(approved_df) % 5 == 0:
@@ -128,7 +118,6 @@ def feedback():
     elif feedback_val == "n":
         if correction:
             save_correction(user_input, correction)
-            # Fine-tune immediately with corrections
             p = multiprocessing.Process(
                 target=fine_tune_model,
                 args=(tokenized_dataset, model, tokenizer)

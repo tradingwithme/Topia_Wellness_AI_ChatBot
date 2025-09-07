@@ -2,7 +2,6 @@ import pandas as pd
 from os import path, getcwd
 from multiprocessing import Lock
 
-# Global multiprocessing lock to prevent race conditions
 _csv_lock = Lock()
 
 def get_mental_health_data():
@@ -17,7 +16,6 @@ def get_mental_health_data():
     """
     with _csv_lock:
         try:
-            # Load the base dataset
             print("Loading mentalhealth.csv...")
             mental_df = pd.read_csv("mentalhealth.csv", index_col=0)
         except FileNotFoundError:
@@ -25,7 +23,6 @@ def get_mental_health_data():
             mental_df = pd.DataFrame(columns=["Questions", "Answers"])
 
         try:
-            # Load Hugging Face parquet dataset
             print("Loading Hugging Face parquet dataset...")
             df_parquet = pd.read_parquet(
                 "hf://datasets/heliosbrahma/mental_health_chatbot_dataset/data/train-00000-of-00001-01391a60ef5c00d9.parquet"
@@ -34,31 +31,25 @@ def get_mental_health_data():
             df2 = pd.DataFrame(
                 df_parquet["text"]
                 .apply(
-                    lambda x: {
-                        "Questions": x.splitlines()[0]
-                        .split(">", 1)[-1]
-                        .split(":", 1)[-1]
-                        .strip(),
-                        "Answers": x.splitlines()[1]
-                        .split(">", 1)[-1]
-                        .split(":", 1)[-1]
-                        .strip(),
-                    }
-                )
-                .tolist()
-            )
+lambda x: {
+"Questions": x.splitlines()[0]
+.split(">", 1)[-1]
+.split(":", 1)[-1]
+.strip(),
+"Answers": x.splitlines()[1]
+.split(">", 1)[-1]
+.split(":", 1)[-1]
+.strip(),
+}
+)
+.tolist()
+)
         except Exception as e:
             print(f"Warning: Could not load parquet dataset: {e}")
             df2 = pd.DataFrame(columns=["Questions", "Answers"])
-
-        # Merge datasets
         combined_df = pd.concat([mental_df, df2], ignore_index=True)
-
-        # Drop duplicates, standardize
         combined_df = combined_df.drop_duplicates().reset_index(drop=True)
         combined_df["Type"] = "O"
-
-        # Load approved responses if they exist
         approved_path = path.join(getcwd(), "approved_responses.csv")
         if path.exists(approved_path):
             print("Loading approved responses...")

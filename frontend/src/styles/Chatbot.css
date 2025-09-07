@@ -15,14 +15,12 @@ body {
   position: relative;
 }
 
-/* Animated background gradient */
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* Floating glowing orbs */
 body::before, body::after {
   content: "";
   position: absolute;
@@ -50,7 +48,6 @@ body::after {
   100% { transform: translateY(-40px) translateX(40px); }
 }
 
-/* Chatbot container with glassmorphism */
 .chatbot-container {
   width: 400px;
   height: 600px;
@@ -60,25 +57,20 @@ body::after {
   overflow: hidden;
   position: relative;
 
-  /* Extra aura around the box */
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25),
               0 0 40px rgba(123, 47, 247, 0.6),
               0 0 70px rgba(0, 191, 255, 0.5);
 
-  /* Animated border gradient frame */
   border-image: linear-gradient(135deg, #7b2ff7, #00bfff, #00ffcc, #ff4ecd) 1;
 
-  /* Fancy glassmorphism effect */
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(15px);
   border: 2px solid rgba(255, 255, 255, 0.3);
 
-  /* Glow & shadow */
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2),
               0 0 25px rgba(123, 47, 247, 0.4),
               0 0 50px rgba(0, 191, 255, 0.3);
 
-  /* Gradient border animation */
   animation: border-glow 6s linear infinite;
 }
 
@@ -88,7 +80,6 @@ body::after {
   100% { box-shadow: 0 0 15px #7b2ff7, 0 0 30px #00bfff; }
 }
 
-/* Header */
 .chat-header {
   background: linear-gradient(90deg, #7b2ff7, #00bfff);
   padding: 15px;
@@ -100,7 +91,6 @@ body::after {
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-/* Chat Window */
 .chat-window {
   flex: 1;
   padding: 20px;
@@ -112,7 +102,6 @@ body::after {
   scroll-behavior: smooth;
 }
 
-/* Typing Indicator */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -134,7 +123,6 @@ body::after {
   pointer-events: none;
 }
 
-/* Dots Animation */
 .dot {
   width: 8px;
   height: 8px;
@@ -152,24 +140,20 @@ body::after {
   40% { opacity: 1; transform: scale(1); }
 }
 
-/* Messages area */
 .chatbot-messages {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
   position: relative;
 
-  /* Layered gradient wallpaper */
   background: radial-gradient(circle at top left, rgba(123,47,247,0.08), transparent 40%),
               radial-gradient(circle at bottom right, rgba(0,191,255,0.08), transparent 40%),
               linear-gradient(135deg, #f0f7ff, #ffffff);
 
-  /* Soft dotted texture */
   background-image: radial-gradient(circle, rgba(0,191,255,0.06) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
-/* Scrollbar styling */
 .chatbot-messages::-webkit-scrollbar {
   width: 8px;
 }
@@ -178,7 +162,6 @@ body::after {
   border-radius: 10px;
 }
 
-/* Messages styling */
 .message {
   max-width: 75%;
   padding: 12px 16px;
@@ -211,14 +194,12 @@ body::after {
   background-clip: padding-box;
 }
 
-/* Add fancy glowing border effect on hover */
 .message.user:hover, .message.bot:hover {
   transform: translateY(-2px);
   transition: all 0.3s ease;
   box-shadow: 0 6px 18px rgba(0, 191, 255, 0.45);
 }
 
-/* Chatbot Input Area */
 .chatbot-input-container {
   display: flex;
   align-items: center;
@@ -227,30 +208,28 @@ body::after {
   background: linear-gradient(90deg, #ffffff, #f9fbff);
 }
 
-/* The message box itself */
 .chatbot-input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #00bfff;      /* nice blue border */
+  border: 2px solid #00bfff;      
   border-radius: 25px;
   outline: none;
   font-size: 16px;
-  color: #000;                    /* <-- ensures typed text is visible */
-  background: white;              /* white background so text is readable */
-  caret-color: #7b2ff7;           /* purple cursor */
+  color: #000;                    
+  background: white;              
+  caret-color: #7b2ff7;           
   transition: all 0.3s ease;
 }
 
 .chatbot-input:focus {
-  border-color: #7b2ff7;          /* purple glow on focus */
+  border-color: #7b2ff7;          
   box-shadow: 0 0 12px rgba(123, 47, 247, 0.4);
 }
 
 .chatbot-input::placeholder {
-  color: #999;                    /* subtle grey placeholder */
+  color: #999;                    
 }
 
-/* Fancy Send Button */
 .chatbot-send-btn {
   margin-left: 10px;
   padding: 12px;
@@ -269,7 +248,6 @@ body::after {
   box-shadow: 0 6px 20px rgba(0, 191, 255, 0.6);
 }
 
-/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
@@ -285,7 +263,6 @@ body::after {
   to { text-shadow: 0 0 12px #7b2ff7, 0 0 20px #00ffcc; }
 }
 
-/* Sparkle overlay inside chat window */
 .chatbot-messages::before {
   content: "";
   position: absolute;

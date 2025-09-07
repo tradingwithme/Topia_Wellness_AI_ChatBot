@@ -1,4 +1,3 @@
-/* App.css */
 
 .app-container {
   height: 100vh;
@@ -10,7 +9,6 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Splash screen */
 .splash-screen {
   text-align: center;
   animation: fadeIn 1s ease;

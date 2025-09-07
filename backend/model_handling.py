@@ -7,9 +7,6 @@ from peft import PeftModel
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer
 
-# ---------------------------
-# Text Normalization
-# ---------------------------
 stop_words = stopwords.words('english')
 lemmatizer = WordNetLemmatizer()
 
@@ -34,9 +31,6 @@ def text_normalization(text):
             normalized.append(lemma)
     return " ".join(normalized)
 
-# ---------------------------
-# Dataset Formatting
-# ---------------------------
 def format_data(row):
     return f"<HUMAN>: {row['Questions']}\n<ASSISTANT>: {row['Answers']}"
 
@@ -52,9 +46,6 @@ def nltk_download():
         except:
             download(resource)
 
-# ---------------------------
-# Dataset Preparation
-# ---------------------------
 def tokenize_dataset(df, tokenizer):
     df['lemmatized_text'] = df['Questions'].apply(text_normalization)
     df['text'] = df.apply(format_data, axis=1)
@@ -63,9 +54,6 @@ def tokenize_dataset(df, tokenizer):
     print("Dataset successfully tokenized.")
     return tokenized_dataset
 
-# ---------------------------
-# Load or Initialize Model
-# ---------------------------
 def load_checkpoint(model_dir="./mental_health_chatbot_model_iterative", base_model_name="microsoft/DialoGPT-medium"):
     tokenizer = AutoTokenizer.from_pretrained(base_model_name)
     if tokenizer.pad_token is None:
@@ -83,9 +71,6 @@ def load_checkpoint(model_dir="./mental_health_chatbot_model_iterative", base_mo
         print(f"No checkpoint found. Initialized new model from {base_model_name}.")
     return model, tokenizer
 
-# ---------------------------
-# Trainer Setup
-# ---------------------------
 def setup_trainer(model, tokenizer, tokenized_dataset):
     training_args = TrainingArguments(
         output_dir="./mental_health_chatbot_model_iterative",
@@ -109,9 +94,6 @@ def setup_trainer(model, tokenizer, tokenized_dataset):
     print("Trainer initialized successfully.")
     return trainer, training_args
 
-# ---------------------------
-# Fine-Tuning Functions
-# ---------------------------
 def train_dataset(trainer, training_args, trained_epochs, epochs_per_iteration, total_epochs):
     while trained_epochs < total_epochs:
         print(f"Training iteration: epochs {trained_epochs}/{total_epochs}")

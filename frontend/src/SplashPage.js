@@ -21,7 +21,7 @@ function SplashPage({ onEnter }) {
   const goToChatbot = () => {
     setIsLoading(true);
     setTimeout(() => {
-      if (onEnter) onEnter(); // Switches to Chatbot in App.js
+      if (onEnter) onEnter(); 
     }, 1200);
   };
 

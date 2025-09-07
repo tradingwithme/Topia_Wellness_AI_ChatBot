@@ -194,7 +194,7 @@ npm start
 
 ```python
 summarizer=None
-sagemaker_endpoint="your-endpoint-name"
+sagemaker_endpoint="[endpoint goes here]"
 bot_reply = generate_hybrid_response(
     user_input,
     df,

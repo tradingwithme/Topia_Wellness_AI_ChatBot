@@ -6,9 +6,6 @@ from model_handling import text_normalization
 import boto3
 import json
 
-# ---------------------------
-# Retrieval Confidence
-# ---------------------------
 def get_retrieval_confidence(user_input, tfidf_vectorizer, tfidf_matrix):
     try:
         user_input_norm = text_normalization(user_input)
@@ -19,9 +16,6 @@ def get_retrieval_confidence(user_input, tfidf_vectorizer, tfidf_matrix):
         print(f"Error calculating retrieval confidence: {e}")
         return 0.0
 
-# ---------------------------
-# Rule-Based Response
-# ---------------------------
 def rule_based_response(user_input, df, combined_df_cv=None, stop_words=None):
     user_input_norm = text_normalization(user_input)
     keywords = user_input_norm.split()
@@ -40,9 +34,6 @@ def get_rule_based_confidence(user_input, df, combined_df_cv=None, stop_words=No
     response = rule_based_response(user_input, df, combined_df_cv, stop_words)
     return 1.0 if response != "I'm not sure how to respond to that. Can you please rephrase your question?" else 0.0
 
-# ---------------------------
-# Embedding / SimpleNeighbors Helpers
-# ---------------------------
 def compute_embeddings(texts, encoder):
     return encoder(texts)
 
@@ -61,9 +52,6 @@ def retrieve_neighbors(user_input, sn_index, question_encoder, context_tuples, t
     nearest_indices = sn_index.nearest(user_emb, n=top_k)
     return [context_tuples[i] for i in nearest_indices]
 
-# ---------------------------
-# SageMaker Summarization
-# ---------------------------
 def sagemaker_summarize(text, endpoint_name):
     runtime = boto3.client('sagemaker-runtime')
     response = runtime.invoke_endpoint(
@@ -105,9 +93,6 @@ def summarize_responses(responses, summarizer=None, sagemaker_endpoint=None, chu
             return final_text
     return summaries[0]
 
-# ---------------------------
-# Hybrid Response Generator
-# ---------------------------
 def generate_hybrid_response(
     user_input, df, tfidf_vectorizer, tfidf_matrix, model, tokenizer,
     response_encoder=None, question_encoder=None, sn_index=None, context_tuples=None,
@@ -116,12 +101,10 @@ def generate_hybrid_response(
 ):
     retrieved_responses = []
 
-    # 1. Embedding-based retrieval
     if sn_index and question_encoder and context_tuples:
         neighbors = retrieve_neighbors(user_input, sn_index, question_encoder, context_tuples, top_k=top_k_neighbors)
         retrieved_responses.extend([ans for _, ans in neighbors if ans])
 
-    # 2. TF-IDF retrieval
     user_input_norm = text_normalization(user_input)
     user_tfidf = tfidf_vectorizer.transform([user_input_norm])
     cosine_sim = cosine_similarity(user_tfidf, tfidf_matrix)
@@ -129,12 +112,10 @@ def generate_hybrid_response(
     if cosine_sim[0, most_similar_index] > retrieval_threshold:
         retrieved_responses.append(df['Answers'].iloc[most_similar_index])
 
-    # 3. Rule-based
     rule_response_text = rule_based_response(user_input, df)
     if get_rule_based_confidence(user_input, df) > rule_threshold and rule_response_text not in retrieved_responses:
         retrieved_responses.append(rule_response_text)
 
-    # 4. Generative (PEFT / HuggingFace model)
     input_text = f"<HUMAN>: {user_input}\n<ASSISTANT>:"
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
     output_ids = model.generate(
@@ -148,7 +129,6 @@ def generate_hybrid_response(
     gen_response = tokenizer.decode(output_ids[0], skip_special_tokens=True).replace(input_text, "").strip()
     retrieved_responses.append(gen_response)
 
-    # 5. Summarize multiple responses (optional)
     if (summarizer or sagemaker_endpoint) and len(retrieved_responses) > 1:
         return summarize_responses(retrieved_responses, summarizer, sagemaker_endpoint)
     else:

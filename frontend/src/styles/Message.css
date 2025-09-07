@@ -1,6 +1,4 @@
-/* Message.css */
 
-/* General message container */
 .message {
   display: flex;
   margin: 12px 0;
@@ -8,7 +6,6 @@
   animation: fadeSlideIn 0.4s ease;
 }
 
-/* Different alignment for user vs. bot */
 .user-message {
   justify-content: flex-end;
 }
@@ -17,7 +14,6 @@
   justify-content: flex-start;
 }
 
-/* Chat bubble container */
 .message-bubble {
   max-width: 70%;
   padding: 12px 18px;
@@ -27,14 +23,12 @@
   animation: bubblePop 0.3s ease;
 }
 
-/* User bubble style */
 .user-message .message-bubble {
   background: linear-gradient(135deg, #6a11cb, #2575fc);
   color: #fff;
   border-bottom-right-radius: 6px;
 }
 
-/* Bot bubble style */
 .bot-message .message-bubble {
   background: #ffffff;
   color: #333;
@@ -42,7 +36,6 @@
   border-bottom-left-radius: 6px;
 }
 
-/* Sender label */
 .message-meta {
   font-size: 0.75rem;
   font-weight: 600;
@@ -87,7 +80,6 @@
   color: #e0e0ff;
 }
 
-/* Animations */
 @keyframes fadeSlideIn {
   from {
     opacity: 0;

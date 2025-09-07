@@ -21,13 +21,11 @@ function Chatbot() {
     setMessages(newMessages);
     setInput("");
 
-    // Show typing indicator
     setIsTyping(true);
     setHideTyping(false);
 
-    // Simulate bot response
     setTimeout(() => {
-      const botReply = "Hello! I am your sophisticated chatbot. How can I assist you today?";
+      const botReply = "Welcome to Topia's AI Wellness Chatbot. How may I assist you today?";
       setMessages(prev => [
         ...prev,
         {

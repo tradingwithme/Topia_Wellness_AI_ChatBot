@@ -46,41 +46,34 @@ def main():
     parser.add_argument('--response', type=str, default=None)
     args = parser.parse_args()
 
-    # Load dataset and model
     nltk_download()
     df = get_mental_health_data()
     tokenized_dataset, tfidf_vectorizer, tfidf_matrix = tokenize_dataset()
     model, tokenizer = load_checkpoint()
 
-    # Generate welcome message (no buttons)
     bot_reply = "Welcome, to Topia's AI Wellness Chatbot! How may I assist you today?"
     print(bot_reply)
 
-    # Interactive input
     while True:
         user_input = args.user_input or input("You: ").strip()
         if user_input.lower() in ["exit", "quit"]:
             print("Exiting chatbot.")
             break
-
-        # Generate hybrid response
         response = generate_hybrid_response(
-            user_input,
-            df,
-            tfidf_vectorizer,
-            tfidf_matrix,
-            model,
-            tokenizer
-        )
+user_input,
+df,
+tfidf_vectorizer,
+tfidf_matrix,
+model,
+tokenizer
+)
         print(f"Bot: {response}")
 
-        # Feedback handling
         feedback = input("Do you approve this response? (y/n, Enter to skip): ").strip().lower()
         if feedback == "y" or (args.feedback and args.feedback == 'y'):
             save_approved_response(user_input, response)
             print("Approved response saved.")
 
-            # Fine-tune every 5 approved responses
             try:
                 approved_df = pd.read_csv("approved_responses.csv")
                 if len(approved_df) % 5 == 0:
@@ -96,7 +89,6 @@ def main():
                 save_correction(user_input, corrected)
                 print("Correction saved.")
 
-                # Fine-tune immediately in the background
                 p = multiprocessing.Process(target=fine_tune_model, args=(tokenized_dataset, model, tokenizer))
                 p.start()
                 print("Background fine-tuning with correction started.")

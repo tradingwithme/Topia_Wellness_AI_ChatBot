@@ -3,7 +3,6 @@ import multiprocessing
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 
-# Import your chatbot logic
 from chatbot_entry import (
     get_mental_health_data,
     nltk_download,
@@ -17,9 +16,8 @@ from chatbot_entry import (
 )
 
 app = Flask(__name__)
-CORS(app)  # allow requests from React frontend
+CORS(app)  
 
-# Preload model + dataset on server start
 print("Loading dataset and models...")
 df = get_mental_health_data()
 nltk_download()
@@ -33,17 +31,17 @@ def chat():
         user_message = data.get("message", "")
 
         if not user_message.strip():
-            return jsonify({"response": "⚠️ Please type a valid message."})
+            return jsonify({"response": "Please type a valid message."})
 
-        # Generate chatbot response
+      
         response = generate_hybrid_response(
-            user_message,
-            df,
-            tfidf_vectorizer,
-            tfidf_matrix,
-            model,
-            tokenizer,
-        )
+user_message,
+df,
+tfidf_vectorizer,
+tfidf_matrix,
+model,
+tokenizer,
+)
 
         return jsonify({"response": response})
 

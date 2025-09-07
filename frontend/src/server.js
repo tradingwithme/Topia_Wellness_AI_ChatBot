@@ -9,10 +9,8 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Chatbot endpoint
 app.post('/chatbot', (req, res) => {
   const userMessage = req.body.message;
-  // Call Python script to get chatbot response
   const pythonProcess = spawn('python3', [
     '../scripts/chatbot.py',
     userMessage
@@ -37,10 +35,8 @@ app.post('/chatbot', (req, res) => {
   });
 });
 
-// Feedback endpoint
 app.post('/feedback', (req, res) => {
   const { feedback, user_input, response } = req.body;
-  // Call Python script to handle feedback and fine-tuning
   const pythonProcess = spawn('python3', [
     '../scripts/chatbot_entry.py',
     '--feedback', feedback,
